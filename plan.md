@@ -15,7 +15,7 @@ After the MVP is built, we can get feedback and add more features later.
 
 ### Tech Stack
 We’ll use a simple, boring, and well-understood tech stack that’s easy to work with:
-- **Backend**: Django (Python)  
+- **Backend**: Django (Pythaon)  
   - Why? Django is a framework that does a lot for you (like user logins and database stuff) and is easy to learn. Python is readable, which helps junior developers.
 - **Database**: PostgreSQL  
   - Why? It’s a solid, free database that works great with Django and can handle growth later.

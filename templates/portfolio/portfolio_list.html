@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}My Portfolio{% endblock %}
+
+{% block content %}
+<h1>My Portfolio</h1>
+
+<a href="{% url 'portfolio:create_portfolio_item' %}">Add New Project</a>
+
+{% if items %}
+<div class="portfolio-items">
+  {% for item in items %}
+  <div class="portfolio-item">
+    <h2>{{ item.title }}</h2>
+    <p>{{ item.description }}</p>
+
+    {% if item.media_url %}
+    <div class="media-link">
+      <a href="{{ item.media_url }}" target="_blank">View Media</a>
+    </div>
+    {% endif %}
+
+    <div class="item-actions">
+      <a href="{% url 'portfolio:edit_portfolio_item' item.pk %}">Edit</a>
+      <a href="{% url 'portfolio:delete_portfolio_item' item.pk %}">Delete</a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<p>You haven't added any portfolio items yet.</p>
+{% endif %}
+{% endblock %}

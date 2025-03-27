@@ -23,6 +23,7 @@ Error log:
 <details>
 <summary> users with no profile fix</summary>
 first open up shell 
+
 ```python
 python manage.py shell
 ```
@@ -45,4 +46,11 @@ for user in users:
         Profile.objects.create(user=user)
         print(f"Created profile for {user.username}")
 ```
+
 </details>
+
+## STEP 4
+- let users add projects to their profile.
+- created a `PortfolioItem` model in a new `portfolio` app.
+- added views to create, edit, and delete portfolio items (used Django forms).
+- showed portfolio items on the profile page template.

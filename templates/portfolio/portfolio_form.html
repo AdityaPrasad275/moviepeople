@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}
+{% if form.instance.pk %}Edit{% else %}Add{% endif %} Portfolio Item
+{% endblock %}
+
+{% block content %}
+<h1>{% if form.instance.pk %}Edit{% else %}Add{% endif %} Portfolio Item</h1>
+
+<form method="post">
+  {% csrf_token %}
+
+  <div>
+    <label for="{{ form.title.id_for_label }}">Title:</label>
+    {{ form.title }}
+    {% if form.title.errors %}
+    <div class="error">{{ form.title.errors }}</div>
+    {% endif %}
+  </div>
+
+  <div>
+    <label for="{{ form.description.id_for_label }}">Description:</label>
+    {{ form.description }}
+    {% if form.description.errors %}
+    <div class="error">{{ form.description.errors }}</div>
+    {% endif %}
+  </div>
+
+  <div>
+    <label for="{{ form.media_url.id_for_label }}">Media URL:</label>
+    {{ form.media_url }}
+    <small>Enter a YouTube or Vimeo URL</small>
+    {% if form.media_url.errors %}
+    <div class="error">{{ form.media_url.errors }}</div>
+    {% endif %}
+  </div>
+
+  <div>
+    <button type="submit">Save</button>
+    <a href="{% url 'portfolio:portfolio_list' %}">Cancel</a>
+  </div>
+</form>
+{% endblock %}
