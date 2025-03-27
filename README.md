@@ -20,5 +20,29 @@ the whole plan is in plan.md
 Error log:
 - i forgot to do `python manage.py makemigrations` before `migrate` so the profile model was not created in the database. 
 - the user with usernme adi and password aditya275 doesnt have a profile lmao. because it was registered before step 3
+<details>
+<summary> users with no profile fix</summary>
+first open up shell 
+```python
+python manage.py shell
+```
+then run this code
+```python
+from django.contrib.auth.models import User
+from users.models import Profile
 
+# Get all users
+users = User.objects.all()
 
+# Create profiles for users who don't have one
+for user in users:
+    try:
+        # Check if profile exists
+        profile = user.profile
+        print(f"Profile for {user.username} already exists")
+    except Profile.DoesNotExist:
+        # Create profile if it doesn't exist
+        Profile.objects.create(user=user)
+        print(f"Created profile for {user.username}")
+```
+</details>
