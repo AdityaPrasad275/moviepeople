@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+<h1>Edit Your Profile</h1>
+
+<form method="post">
+  {% csrf_token %}
+
+  <div>
+    <h2>Professional Details</h2>
+
+    <div>
+      <label for="{{ form.role.id_for_label }}">Role:</label>
+      {{ form.role }}
+      {% if form.role.errors %}
+      <div>{{ form.role.errors }}</div>
+      {% endif %}
+    </div>
+
+    <div>
+      <label for="{{ form.location.id_for_label }}">Location:</label>
+      {{ form.location }}
+      {% if form.location.errors %}
+      <div>{{ form.location.errors }}</div>
+      {% endif %}
+    </div>
+
+    <div>
+      <label for="{{ form.bio.id_for_label }}">Bio:</label>
+      {{ form.bio }}
+      {% if form.bio.errors %}
+      <div>{{ form.bio.errors }}</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div>
+    <button type="submit">Save Changes</button>
+    <a href="{% url 'users:profile' %}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

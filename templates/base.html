@@ -12,6 +12,8 @@
         <ul>
           {% if user.is_authenticated %}
           <li>Hello, {{ user.username }}</li>
+          <li><a href="{% url 'users:profile' %}">View Profile</a></li>
+          <li><a href="{% url 'users:edit_profile' %}">Edit Profile</a></li>
           <li><a href="{% url 'users:logout' %}">Logout</a></li>
           {% else %}
           <li><a href="{% url 'users:login' %}">Login</a></li>
@@ -20,6 +22,7 @@
         </ul>
       </nav>
     </header>
+
 
     <main>
       {% if messages %}

@@ -2,6 +2,9 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .forms import ProfileForm
 
 
 def signup(request):
@@ -45,3 +48,20 @@ def logout_view(request):
     logout(request)
     messages.success(request, "You have been logged out successfully!")
     return redirect("users:login")
+
+
+@login_required
+def profile_view(request):
+    return render(request, "users/profile.html")
+
+
+@login_required
+def edit_profile(request):
+    if request.method == "POST":
+        form = ProfileForm(request.POST, instance=request.user.profile)
+        if form.is_valid():
+            form.save()
+            return redirect("users:profile")
+    else:
+        form = ProfileForm(instance=request.user.profile)
+    return render(request, "users/edit_profile.html", {"form": form})
