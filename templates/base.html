@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <title>{% block title %}Movie People{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+
+  <body>
+    <header>
+      <nav>
+        <ul>
+          {% if user.is_authenticated %}
+          <li>Hello, {{ user.username }}</li>
+          <li><a href="{% url 'users:logout' %}">Logout</a></li>
+          {% else %}
+          <li><a href="{% url 'users:login' %}">Login</a></li>
+          <li><a href="{% url 'users:signup' %}">Sign Up</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </header>
+
+    <main>
+      {% if messages %}
+      <div class="messages">
+        {% for message in messages %}
+        <div class="message {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+
+</html>
