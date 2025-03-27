@@ -10,15 +10,21 @@
     <header>
       <nav>
         <ul>
-          {% if user.is_authenticated %}
-          <li>Hello, {{ user.username }}</li>
-          <li><a href="{% url 'users:profile' %}">View Profile</a></li>
-          <li><a href="{% url 'users:edit_profile' %}">Edit Profile</a></li>
-          <li><a href="{% url 'users:logout' %}">Logout</a></li>
-          {% else %}
-          <li><a href="{% url 'users:login' %}">Login</a></li>
-          <li><a href="{% url 'users:signup' %}">Sign Up</a></li>
-          {% endif %}
+          <nav>
+            <ul>
+              {% if user.is_authenticated %}
+              <li>Hello, {{ user.username }}</li>
+              <li><a href="{% url 'users:profile' %}">View Profile</a></li>
+              <li><a href="{% url 'users:edit_profile' %}">Edit Profile</a></li>
+              <li><a href="{% url 'users:search_users' %}">Find People</a></li>
+              <li><a href="{% url 'users:logout' %}">Logout</a></li>
+              {% else %}
+              <li><a href="{% url 'users:login' %}">Login</a></li>
+              <li><a href="{% url 'users:signup' %}">Sign Up</a></li>
+              {% endif %}
+            </ul>
+          </nav>
+
         </ul>
       </nav>
     </header>

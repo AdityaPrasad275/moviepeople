@@ -54,3 +54,12 @@ for user in users:
 - created a `PortfolioItem` model in a new `portfolio` app.
 - added views to create, edit, and delete portfolio items (used Django forms).
 - showed portfolio items on the profile page template.
+
+## Intermediate step: Searching for a user
+- created a search form (fields: username, role, location).
+- url to the other user to see their profile
+
+Error log:
+- when going to difffernt guy's profile, it was showing that user's name in the navbar instead of the logged in user's name. this was beacuse in base.html i was using `{{ user.username }}` and same in profile too. django  autopopoulates user keyword to whatever idk. so i changed in profile.html to profile_user which was being passed by profile_view instead of being autopopulated by django.
+
+- 

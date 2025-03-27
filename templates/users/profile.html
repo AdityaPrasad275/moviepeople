@@ -1,32 +1,35 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ user.username }}'s Profile{% endblock %}
+{% block title %}{{ profile_user.username }}'s Profile{% endblock %}
 
 {% block content %}
-<h1>{{ user.username }}'s Profile</h1>
+<h1>{{ profile_user.username }}'s Profile</h1>
 
 <div>
   <h2>Basic Information</h2>
-  <p><strong>Username:</strong> {{ user.username }}</p>
-  <p><strong>Email:</strong> {{ user.email }}</p>
+  <p><strong>Username:</strong> {{ profile_user.username }}</p>
+  <p><strong>Email:</strong> {{ profile_user.email }}</p>
 
   <h2>Professional Details</h2>
-  <p><strong>Role:</strong> {{ user.profile.role|default:"Not specified" }}</p>
-  <p><strong>Location:</strong> {{ user.profile.location|default:"Not specified" }}</p>
+  <p><strong>Role:</strong> {{ profile_user.profile.role|default:"Not specified" }}</p>
+  <p><strong>Location:</strong> {{ profile_user.profile.location|default:"Not specified" }}</p>
 
   <h2>Bio</h2>
-  <p>{{ user.profile.bio|default:"No bio available" }}</p>
+  <p>{{ profile_user.profile.bio|default:"No bio available" }}</p>
 </div>
 
+<!-- Only show edit button if viewing own profile -->
+{% if profile_user == user %}
 <div>
   <a href="{% url 'users:edit_profile' %}">Edit Profile</a>
 </div>
+{% endif %}
 
 <div>
   <h2>Portfolio</h2>
-  {% if user.portfolio_items.all %}
+  {% if profile_user.portfolio_items.all %}
   <div class="portfolio-items">
-    {% for item in user.portfolio_items.all %}
+    {% for item in profile_user.portfolio_items.all %}
     <div class="portfolio-item">
       <h3>{{ item.title }}</h3>
       <p>{{ item.description }}</p>
@@ -40,9 +43,8 @@
   <p>No portfolio items yet.</p>
   {% endif %}
 
-  {% if user == request.user %}
+  {% if profile_user == user %}
   <a href="{% url 'portfolio:portfolio_list' %}">Manage Portfolio</a>
   {% endif %}
 </div>
-
 {% endblock %}

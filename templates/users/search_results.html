@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Search Results{% endblock %}
+
+{% block content %}
+<h1>Find People</h1>
+
+<form method="get" action="{% url 'users:search_users' %}">
+  <div>
+    <label for="{{ form.query.id_for_label }}">Username:</label>
+    {{ form.username }}
+  </div>
+  <div>
+    <label for="{{ form.role.id_for_label }}">Role:</label>
+    {{ form.role }}
+  </div>
+  <div>
+    <label for="{{ form.location.id_for_label }}">Location:</label>
+    {{ form.location }}
+  </div>
+  <button type="submit">Search</button>
+</form>
+
+{% if users %}
+<h2>Results</h2>
+<ul>
+  {% for user_obj in users %}
+  <li>
+    <a href="{% url 'users:user_profile' user_obj.username %}">
+      {{ user_obj.username }}
+    </a>
+    {% if user_obj.profile.role %}
+    - {{ user_obj.profile.role }}
+    {% endif %}
+    {% if user_obj.profile.location %}
+    ({{ user_obj.profile.location }})
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>
+{% elif form.is_valid and form.cleaned_data.values|join:'' %}
+<p>No users found matching your criteria.</p>
+{% endif %}
+{% endblock %}
