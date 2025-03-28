@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}My Connections{% endblock %}
+
+{% block content %}
+<h1>My Connections</h1>
+
+{% if connected_users %}
+<div class="user-list">
+  <ul style="list-style: none; padding: 0;">
+    {% for connected_user in connected_users %}
+    <li style="margin-bottom: 15px; padding: 10px; border: 1px solid #eee;">
+      <a href="{% url 'users:user_profile' username=connected_user.username %}" style="font-weight: bold;">
+        {{ connected_user.username }}
+      </a>
+      {% if connected_user.profile.role %}
+      <span style="color: #555;"> - {{ connected_user.profile.role }}</span>
+      {% endif %}
+      {# Add link to message later in Step 6.5 #}
+      {# <a href="{% url 'messaging:conversation' username=connected_user.username %}">Message</a> #}
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% else %}
+<p>You haven't made any connections yet.</p>
+<p><a href="{% url 'users:search_users' %}">Find people</a> to connect with!</p>
+{% endif %}
+
+{% endblock %}

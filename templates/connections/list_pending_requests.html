@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}Pending Connection Requests{% endblock %}
+
+{% block content %}
+<h1>Pending Connection Requests</h1>
+
+{% if pending_requests %}
+<div class="request-list">
+  <ul style="list-style: none; padding: 0;">
+    {% for req in pending_requests %}
+    <li style="margin-bottom: 15px; padding: 10px; border: 1px solid #eee;">
+      <a href="{% url 'users:user_profile' username=req.requester.username %}" style="font-weight: bold;">
+        {{ req.requester.username }}
+      </a>
+      {% if req.requester.profile.role %}
+      <span style="color: #555;"> - {{ req.requester.profile.role }}</span>
+      {% endif %}
+      <div style="margin-top: 5px;">
+        <form action="{% url 'connections:manage_connection_request' connection_id=req.id action='accept' %}"
+          method="POST" style="display: inline;">
+          {% csrf_token %}
+          <button type="submit">Accept</button>
+        </form>
+        <form action="{% url 'connections:manage_connection_request' connection_id=req.id action='reject' %}"
+          method="POST" style="display: inline;">
+          {% csrf_token %}
+          <button type="submit">Reject</button>
+        </form>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% else %}
+<p>You have no pending connection requests.</p>
+{% endif %}
+
+{% endblock %}

@@ -55,11 +55,14 @@ for user in users:
 - added views to create, edit, and delete portfolio items (used Django forms).
 - showed portfolio items on the profile page template.
 
-## Intermediate step: Searching for a user
+## Step 5: Searching for a user
 - created a search form (fields: username, role, location).
 - url to the other user to see their profile
 
 Error log:
 - when going to difffernt guy's profile, it was showing that user's name in the navbar instead of the logged in user's name. this was beacuse in base.html i was using `{{ user.username }}` and same in profile too. django  autopopoulates user keyword to whatever idk. so i changed in profile.html to profile_user which was being passed by profile_view instead of being autopopulated by django.
 
-- 
+## Step 6: Networking
+6.1 added connections to db
+6.2 added view to request connections
+6.3 added view to see pening requests and connections

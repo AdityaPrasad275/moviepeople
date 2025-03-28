@@ -53,8 +53,9 @@ def logout_view(request):
     messages.success(request, "You have been logged out successfully!")
     return redirect("users:login")
 
+from connections.models import Connection
 
-@login_required
+@login_required # profile_view should require login
 def profile_view(request, username=None):
     if username:
         # View another user's profile
@@ -63,7 +64,48 @@ def profile_view(request, username=None):
         # View own profile
         profile_user = request.user
 
-    return render(request, "users/profile.html", {"profile_user": profile_user})
+    # --- Start: Connection Status Logic ---
+    connection_status = None
+    pending_connection_id = None # To store the ID needed for accept/reject actions
+
+    # Only determine status if viewing someone else's profile
+    if request.user.is_authenticated and profile_user != request.user:
+        # Check for an existing connection record between the two users
+        connection = Connection.objects.filter(
+            (Q(requester=request.user, receiver=profile_user)) |
+            (Q(requester=profile_user, receiver=request.user))
+        ).first() # Get the first matching record, if any
+
+        if connection:
+            if connection.status == Connection.STATUS_ACCEPTED:
+                connection_status = 'connected'
+            elif connection.status == Connection.STATUS_PENDING:
+                if connection.requester == request.user:
+                    connection_status = 'pending_sent' # Request was sent BY the logged-in user
+                else:
+                    connection_status = 'pending_received' # Request was received BY the logged-in user
+                    pending_connection_id = connection.id # Pass the ID for management actions
+            elif connection.status == Connection.STATUS_REJECTED:
+                # Decide how to handle rejected. Treat as 'none' for now to allow re-requesting.
+                connection_status = 'rejected' # Or set to 'none' if re-request is desired immediately
+                # If you want to distinguish who rejected:
+                # if connection.requester == request.user:
+                #     connection_status = 'rejected_by_receiver'
+                # else:
+                #     connection_status = 'rejected_by_requester'
+        else:
+            # No connection record exists
+            connection_status = 'none'
+    # --- End: Connection Status Logic ---
+
+    context = {
+        "profile_user": profile_user,
+        "connection_status": connection_status,
+        "pending_connection_id": pending_connection_id,
+        # Add any other context variables your template needs
+    }
+
+    return render(request, "users/profile.html", context)
 
 
 @login_required

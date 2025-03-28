@@ -10,25 +10,24 @@
     <header>
       <nav>
         <ul>
-          <nav>
-            <ul>
-              {% if user.is_authenticated %}
-              <li>Hello, {{ user.username }}</li>
-              <li><a href="{% url 'users:profile' %}">View Profile</a></li>
-              <li><a href="{% url 'users:edit_profile' %}">Edit Profile</a></li>
-              <li><a href="{% url 'users:search_users' %}">Find People</a></li>
-              <li><a href="{% url 'users:logout' %}">Logout</a></li>
-              {% else %}
-              <li><a href="{% url 'users:login' %}">Login</a></li>
-              <li><a href="{% url 'users:signup' %}">Sign Up</a></li>
-              {% endif %}
-            </ul>
-          </nav>
-
+          {% if user.is_authenticated %}
+          <li>Hello, {{ user.username }}</li>
+          <li><a href="{% url 'users:profile' %}">View Profile</a></li>
+          <li><a href="{% url 'users:edit_profile' %}">Edit Profile</a></li>
+          {# --- Add/Modify these lines --- #}
+          <li><a href="{% url 'users:search_users' %}">Find People</a></li>
+          <li><a href="{% url 'connections:list_connections' %}">My Connections</a></li>
+          <li><a href="{% url 'connections:list_pending_requests' %}">Pending Requests</a></li>
+          {# You might want a badge here later showing count of pending requests #}
+          {# --- End of added/modified lines --- #}
+          <li><a href="{% url 'users:logout' %}">Logout</a></li>
+          {% else %}
+          <li><a href="{% url 'users:login' %}">Login</a></li>
+          <li><a href="{% url 'users:signup' %}">Sign Up</a></li>
+          {% endif %}
         </ul>
       </nav>
     </header>
-
 
     <main>
       {% if messages %}

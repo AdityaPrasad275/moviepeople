@@ -98,30 +98,156 @@ Here’s how to build it, broken into parts a junior developer can follow. Each 
   - For simplicity, let users paste video URLs (e.g., YouTube links) instead of uploading files.  
 - **Goal**: Users can add projects with titles, descriptions, and video links.
 
-#### 5. Networking Features
-- **What to Do**: Build tools for connecting and talking.  
-- **How**:  
-  - **Connections**:  
-    - Create a `Connection` model: `user_from` (User), `user_to` (User), `status` (text: "pending" or "accepted").  
-    - Add views to send a connection request and accept/reject it.  
-    - Show a list of connections on the profile page.  
-  - **Messaging**:  
-    - Create a `Message` model: `sender` (User), `recipient` (User), `content` (text), `timestamp` (date).  
-    - Add views to send a message and see a list of messages with a connection.  
-    - Make a simple messaging template.  
-  - **Feed**:  
-    - Create an `Activity` model: `user` (User), `action` (text, e.g., "added a project"), `timestamp` (date).  
-    - Add a view to show activities from a user’s connections.  
-    - Make a feed template.  
-- **Goal**: Users can connect, message, and see updates from each other.
-
-#### 6. Search Functionality
+#### 5. Search Functionality
 - **What to Do**: Let users find others.  
 - **How**:  
   - Create a search form (fields: name, role, location).  
   - Add a view to filter users using Django’s ORM (e.g., `User.objects.filter(role__contains="director")`).  
   - Make a search results template to list matching users.  
 - **Goal**: Users can search and find people.
+
+Okay, you're right. Step 6 in the original plan is quite dense and covers three distinct major features: Connections, Messaging, and a Feed. Let's break that down into more manageable, sequential steps suitable for incremental development.
+
+Here's a refined breakdown of the original Step 6, focusing on delivering one piece of core networking functionality at a time:
+
+**Revised Step 6: Networking Features (Broken Down)**
+
+**Step 6.1: Connection Model & Request/Accept Logic**
+
+*   **Goal:** Establish the backend foundation for connections. Allow users to send, accept, or reject connection requests.
+*   **Tasks:**
+    1.  **Create `Connection` Model:**
+        *   Define a new model named `Connection` (likely in a new `connections` app or within the `users` app).
+        *   Fields:
+            *   `requester`: ForeignKey to `User` (the person sending the request).
+            *   `receiver`: ForeignKey to `User` (the person receiving the request).
+            *   `status`: CharField with choices like 'pending', 'accepted', 'rejected'. (Default: 'pending').
+            *   `created_at`: DateTimeField (auto_now_add=True).
+        *   Add constraints (e.g., `UniqueConstraint`) to prevent duplicate pending requests between the same two users.
+    2.  **Create Migrations:** Run `makemigrations` and `migrate`.
+    3.  **Implement `send_request` View:**
+        *   Create a view that takes a target `user_id`.
+        *   Check if a connection/request already exists between the logged-in user and the target user.
+        *   If not, create a new `Connection` object with `requester=request.user`, `receiver=target_user`, `status='pending'`.
+        *   Add appropriate URL routing for this view.
+    4.  **Implement `manage_request` View (Accept/Reject):**
+        *   Create a view that takes a `connection_id` and an `action` ('accept' or 'reject').
+        *   Verify the logged-in user is the `receiver` of the connection request.
+        *   Update the `Connection` object's `status` based on the action. If rejecting, you could potentially delete the record or set status to 'rejected'. 'Accepted' is the key status.
+        *   Add appropriate URL routing.
+
+**Step 6.2: Display Connection Status & Actions on Profiles**
+
+*   **Goal:** Integrate the connection logic into the user interface, primarily on user profiles.
+*   **Tasks:**
+    1.  **Update `profile_view`:**
+        *   In the `profile_view`, determine the connection status between `request.user` and `profile_user`. Check for existing `Connection` objects involving both users.
+        *   Pass this status information (e.g., 'not_connected', 'request_sent', 'request_received', 'connected') to the template context.
+    2.  **Update `profile.html` Template:**
+        *   Conditionally display buttons/text based on the connection status:
+            *   If `not_connected`: Show a "Send Connection Request" button linking to the `send_request` view for `profile_user`.
+            *   If `request_sent` (current user sent request to profile user): Show "Connection Request Sent". Maybe add a "Cancel Request" button (optional for MVP).
+            *   If `request_received` (profile user sent request to current user): Show "Accept Request" and "Reject Request" buttons linking to the `manage_request` view with the correct `connection_id`.
+            *   If `connected`: Show "Connected" or a "Remove Connection" button (optional for MVP).
+        *   Hide these buttons/options entirely if the user is viewing their *own* profile (`profile_user == user`).
+
+**Step 6.3: List Connections & Pending Requests**
+
+*   **Goal:** Provide dedicated pages for users to see who they are connected with and who wants to connect with them.
+*   **Tasks:**
+    1.  **Create `list_connections` View:**
+        *   Query `Connection` objects where the `request.user` is either the `requester` or `receiver`, and the `status` is 'accepted'.
+        *   Extract the list of connected users (the *other* user in each connection object).
+        *   Pass the list of connected users to a new template.
+    2.  **Create `list_connections.html` Template:**
+        *   Display the list of connected users, linking to their profiles.
+    3.  **Create `list_pending_requests` View:**
+        *   Query `Connection` objects where `request.user` is the `receiver` and `status` is 'pending'.
+        *   Pass this list of pending `Connection` objects (including the requester info) to a new template.
+    4.  **Create `list_pending_requests.html` Template:**
+        *   Display the list of users who have sent requests.
+        *   Include "Accept" and "Reject" buttons for each request, linking to the `manage_request` view.
+    5.  **Add URLs:** Create URL patterns for these new list views.
+    6.  **Update `base.html`:** Add navigation links to "My Connections" and "Pending Requests".
+
+---
+*Pause Point: At this stage, the core connection mechanism is functional and visible.*
+---
+
+**Step 6.4: Basic Messaging Model & Send Functionality**
+
+*   **Goal:** Allow connected users to send simple text messages to each other.
+*   **Tasks:**
+    1.  **Create `Message` Model:**
+        *   Define a new model named `Message` (likely in a new `messaging` app).
+        *   Fields:
+            *   `sender`: ForeignKey to `User`.
+            *   `recipient`: ForeignKey to `User`.
+            *   `content`: TextField.
+            *   `timestamp`: DateTimeField (auto_now_add=True).
+            *   `is_read`: BooleanField (default=False) (Optional for MVP, but useful later).
+    2.  **Create Migrations:** Run `makemigrations` and `migrate`.
+    3.  **Create `send_message` View:**
+        *   This view might handle POST requests from a message form.
+        *   It needs the `recipient_id` and the message `content`.
+        *   **Crucially:** Verify that the `sender` (`request.user`) and `recipient` are actually connected (check for an 'accepted' `Connection` between them).
+        *   If connected, create and save the `Message` object.
+        *   Redirect back to the conversation view (or wherever the form was).
+    4.  **Add URL:** Create a URL pattern for sending messages.
+
+**Step 6.5: Display Conversation View**
+
+*   **Goal:** Show the message history between the logged-in user and one specific connection.
+*   **Tasks:**
+    1.  **Create `conversation_view`:**
+        *   Takes a `connection_user_id` (the user the current user is chatting with).
+        *   Verify that `request.user` and the `connection_user` are connected.
+        *   Fetch all `Message` objects where:
+            *   (`sender`= `request.user` AND `recipient` = `connection_user`) OR
+            *   (`sender`= `connection_user` AND `recipient` = `request.user`)
+        *   Order messages by `timestamp`.
+        *   Pass the messages and the `connection_user` to the template.
+    2.  **Create `conversation.html` Template:**
+        *   Display the messages chronologically.
+        *   Include a simple form (textarea and submit button) that POSTs to the `send_message` view, including the `recipient_id` (likely as a hidden input).
+    3.  **Add URL:** Create a URL pattern for the conversation view (e.g., `/messages/<str:username>/`).
+    4.  **Link from Connections List:** Update `list_connections.html` to link each connection to their respective `conversation_view`.
+
+---
+*Pause Point: Basic 1-on-1 messaging between connections is now functional.*
+---
+
+**Step 6.6: Basic Activity Feed (Model & Generation)**
+
+*   **Goal:** Create a way to record significant user actions for the feed. Start with "added portfolio item".
+*   **Tasks:**
+    1.  **Create `Activity` Model:**
+        *   Define a new model `Activity` (in a `feed` app or maybe `users`).
+        *   Fields:
+            *   `user`: ForeignKey to `User` (who performed the action).
+            *   `activity_type`: CharField (e.g., 'new_portfolio_item').
+            *   `content`: TextField (e.g., "added a new portfolio item: '[Item Title]'"). Store descriptive text directly for simplicity in MVP.
+            *   `timestamp`: DateTimeField (auto_now_add=True).
+            *   (Optional: GenericForeignKey to link directly to the related object like `PortfolioItem`).
+    2.  **Create Migrations:** Run `makemigrations` and `migrate`.
+    3.  **Modify Portfolio Views:**
+        *   In the view where a `PortfolioItem` is successfully created (or maybe updated), add logic to also create an `Activity` record.
+        *   Construct the `content` string dynamically (e.g., `f"added a new portfolio item: '{portfolio_item.title}'"`).
+
+**Step 6.7: Display Basic Activity Feed**
+
+*   **Goal:** Show the logged-in user a chronological feed of activities from their connections.
+*   **Tasks:**
+    1.  **Create `feed_view`:**
+        *   Get the list of user IDs the `request.user` is connected to (status='accepted').
+        *   Query `Activity` objects where the `user` is in that list of connected IDs.
+        *   Order the activities by `timestamp` (descending).
+        *   Pass the list of activities to the template.
+    2.  **Create `feed.html` Template:**
+        *   Loop through the activities and display the `user.username`, `content`, and `timestamp` for each.
+    3.  **Add URL:** Create a URL pattern for the feed (this could potentially become the main 'home' page after login).
+    4.  **Update `base.html`:** Add a navigation link to "Feed" or "Home".
+
 
 #### 7. Basic UI
 - **What to Do**: Make it usable, not pretty.  

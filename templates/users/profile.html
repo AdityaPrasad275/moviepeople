@@ -5,10 +5,62 @@
 {% block content %}
 <h1>{{ profile_user.username }}'s Profile</h1>
 
+{# --- START: Connection Actions Section --- #}
+{% if user.is_authenticated and profile_user != user %}
+<div class="connection-actions" style="margin-bottom: 20px; padding: 10px; border: 1px solid #ccc;">
+  <h4>Connection Status</h4>
+  {% if connection_status == 'none' %}
+  <p>You are not connected with {{ profile_user.username }}.</p>
+  <form action="{% url 'connections:send_connection_request' user_id=profile_user.id %}" method="POST"
+    style="display: inline;">
+    {% csrf_token %}
+    <button type="submit">Send Connection Request</button>
+  </form>
+
+  {% elif connection_status == 'pending_sent' %}
+  <p>Connection request sent to {{ profile_user.username }}. Waiting for response.</p>
+  {# Optional: Add a 'Cancel Request' button here later #}
+
+  {% elif connection_status == 'pending_received' %}
+  <p>{{ profile_user.username }} has sent you a connection request.</p>
+  <form action="{% url 'connections:manage_connection_request' connection_id=pending_connection_id action='accept' %}"
+    method="POST" style="display: inline;">
+    {% csrf_token %}
+    <button type="submit">Accept Request</button>
+  </form>
+  <form action="{% url 'connections:manage_connection_request' connection_id=pending_connection_id action='reject' %}"
+    method="POST" style="display: inline;">
+    {% csrf_token %}
+    <button type="submit">Reject Request</button>
+  </form>
+
+  {% elif connection_status == 'connected' %}
+  <p>You are connected with {{ profile_user.username }}.</p>
+  {# Optional: Add a 'Remove Connection' button here later #}
+
+  {% elif connection_status == 'rejected' %}
+  <p>A previous connection request was rejected.</p>
+  {# Option 1: Show nothing further #}
+  {# Option 2: Allow re-requesting immediately by showing the send button again #}
+  <form action="{% url 'connections:send_connection_request' user_id=profile_user.id %}" method="POST"
+    style="display: inline;">
+    {% csrf_token %}
+    <button type="submit">Send Connection Request Again</button>
+  </form>
+
+  {% else %}
+  {# Should not happen if logic is correct, but good practice #}
+  <p>Unable to determine connection status.</p>
+  {% endif %}
+</div>
+{% endif %}
+{# --- END: Connection Actions Section --- #}
+
+
 <div>
   <h2>Basic Information</h2>
   <p><strong>Username:</strong> {{ profile_user.username }}</p>
-  <p><strong>Email:</strong> {{ profile_user.email }}</p>
+  <p><strong>Email:</strong> {{ profile_user.email }}</p> {# Consider privacy implications of showing email #}
 
   <h2>Professional Details</h2>
   <p><strong>Role:</strong> {{ profile_user.profile.role|default:"Not specified" }}</p>
@@ -25,8 +77,10 @@
 </div>
 {% endif %}
 
+{# --- Portfolio Section remains the same --- #}
 <div>
   <h2>Portfolio</h2>
+  {% comment %} Your existing portfolio code here {% endcomment %}
   {% if profile_user.portfolio_items.all %}
   <div class="portfolio-items">
     {% for item in profile_user.portfolio_items.all %}
@@ -44,7 +98,8 @@
   {% endif %}
 
   {% if profile_user == user %}
-  <a href="{% url 'portfolio:portfolio_list' %}">Manage Portfolio</a>
+  <a href="#">Manage Portfolio</a> {# Link to your portfolio management page #}
   {% endif %}
 </div>
+
 {% endblock %}

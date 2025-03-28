@@ -1,0 +1,281 @@
+forms.py =>
+```python
+from django import forms
+from .models import Profile
+
+
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ["role", "location", "bio"]
+
+
+class UserSearchForm(forms.Form):
+    username = forms.CharField(label="Username", max_length=100, required=False)
+    role = forms.CharField(label="Role", max_length=100, required=False)
+    location = forms.CharField(label="Location", max_length=100, required=False)
+```
+
+models.py =>
+```python
+from django.db import models
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    role = models.CharField(max_length=100, blank=True)
+    location = models.CharField(max_length=100, blank=True)
+    bio = models.TextField(max_length=500, blank=True)
+
+    def __str__(self):
+        return self.user.username
+
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
+
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    instance.profile.save()
+```
+
+views.py =>
+```python
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .forms import ProfileForm
+from django.contrib.auth.models import User
+from django.db.models import Q
+from django.shortcuts import render
+from .forms import UserSearchForm
+
+
+def signup(request):
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(request, "Registration successful!")
+            return redirect("users:login")
+        else:
+            messages.error(request, "Registration failed. Please correct the errors.")
+    else:
+        form = UserCreationForm()
+
+    return render(request, "users/signup.html", {"form": form})
+
+
+def login_view(request):
+    if request.method == "POST":
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get("username")
+            password = form.cleaned_data.get("password")
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                messages.success(request, f"Welcome back, {username}!")
+                return redirect("home")  # You'll create this view later
+            else:
+                messages.error(request, "Invalid username or password.")
+        else:
+            messages.error(request, "Invalid username or password.")
+    else:
+        form = AuthenticationForm()
+
+    return render(request, "users/login.html", {"form": form})
+
+
+def logout_view(request):
+    logout(request)
+    messages.success(request, "You have been logged out successfully!")
+    return redirect("users:login")
+
+
+@login_required
+def profile_view(request, username=None):
+    if username:
+        # View another user's profile
+        profile_user = get_object_or_404(User, username=username)
+    else:
+        # View own profile
+        profile_user = request.user
+
+    return render(request, "users/profile.html", {"profile_user": profile_user})
+
+
+@login_required
+def edit_profile(request):
+    if request.method == "POST":
+        form = ProfileForm(request.POST, instance=request.user.profile)
+        if form.is_valid():
+            form.save()
+            return redirect("users:profile")
+    else:
+        form = ProfileForm(instance=request.user.profile)
+    return render(request, "users/edit_profile.html", {"form": form})
+
+
+def search_users(request):
+    User  # Get the currently active user model
+    form = UserSearchForm(request.GET or None)
+    users = []
+
+    if form.is_valid() and any(form.cleaned_data.values()):
+        username_query = form.cleaned_data.get("username", "")
+        role = form.cleaned_data.get("role", "")
+        location = form.cleaned_data.get("location", "")
+
+        # Start with all users except the current user
+        users_query = User.objects.exclude(id=request.user.id)
+
+        # Apply filters
+        if username_query:
+            users_query = users_query.filter(
+                Q(username__icontains=username_query)
+                | Q(email__icontains=username_query)
+            )
+
+        if role:
+            users_query = users_query.filter(profile__role__icontains=role)
+
+        if location:
+            users_query = users_query.filter(profile__location__icontains=location)
+
+        users = users_query.distinct()
+
+    return render(request, "users/search_results.html", {"form": form, "users": users})
+```
+
+urls.py =>
+```python
+from django.urls import path
+from . import views
+
+app_name = "users"
+
+urlpatterns = [
+    path("signup/", views.signup, name="signup"),
+    path("login/", views.login_view, name="login"),
+    path("logout/", views.logout_view, name="logout"),
+    path("profile/edit/", views.edit_profile, name="edit_profile"),
+    path("profile/", views.profile_view, name="profile"),
+    path("profile/<str:username>/", views.profile_view, name="user_profile"),
+    path("search/", views.search_users, name="search_users"),
+]
+```
+
+templates/base.html =>
+```html
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <title>{% block title %}Movie People{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+
+  <body>
+    <header>
+      <nav>
+        <ul>
+          <nav>
+            <ul>
+              {% if user.is_authenticated %}
+              <li>Hello, {{ user.username }}</li>
+              <li><a href="{% url 'users:profile' %}">View Profile</a></li>
+              <li><a href="{% url 'users:edit_profile' %}">Edit Profile</a></li>
+              <li><a href="{% url 'users:search_users' %}">Find People</a></li>
+              <li><a href="{% url 'users:logout' %}">Logout</a></li>
+              {% else %}
+              <li><a href="{% url 'users:login' %}">Login</a></li>
+              <li><a href="{% url 'users:signup' %}">Sign Up</a></li>
+              {% endif %}
+            </ul>
+          </nav>
+
+        </ul>
+      </nav>
+    </header>
+
+
+    <main>
+      {% if messages %}
+      <div class="messages">
+        {% for message in messages %}
+        <div class="message {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+
+</html>
+```
+
+templates/users/profile.html =>
+```html 
+{% extends 'base.html' %}
+
+{% block title %}{{ profile_user.username }}'s Profile{% endblock %}
+
+{% block content %}
+<h1>{{ profile_user.username }}'s Profile</h1>
+
+<div>
+  <h2>Basic Information</h2>
+  <p><strong>Username:</strong> {{ profile_user.username }}</p>
+  <p><strong>Email:</strong> {{ profile_user.email }}</p>
+
+  <h2>Professional Details</h2>
+  <p><strong>Role:</strong> {{ profile_user.profile.role|default:"Not specified" }}</p>
+  <p><strong>Location:</strong> {{ profile_user.profile.location|default:"Not specified" }}</p>
+
+  <h2>Bio</h2>
+  <p>{{ profile_user.profile.bio|default:"No bio available" }}</p>
+</div>
+
+<!-- Only show edit button if viewing own profile -->
+{% if profile_user == user %}
+<div>
+  <a href="{% url 'users:edit_profile' %}">Edit Profile</a>
+</div>
+{% endif %}
+
+<div>
+  <h2>Portfolio</h2>
+  {% if profile_user.portfolio_items.all %}
+  <div class="portfolio-items">
+    {% for item in profile_user.portfolio_items.all %}
+    <div class="portfolio-item">
+      <h3>{{ item.title }}</h3>
+      <p>{{ item.description }}</p>
+      {% if item.media_url %}
+      <a href="{{ item.media_url }}" target="_blank">View Media</a>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p>No portfolio items yet.</p>
+  {% endif %}
+
+  {% if profile_user == user %}
+  <a href="{% url 'portfolio:portfolio_list' %}">Manage Portfolio</a>
+  {% endif %}
+</div>
+{% endblock %}
+```
