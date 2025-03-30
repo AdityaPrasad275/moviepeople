@@ -217,37 +217,68 @@ Here's a refined breakdown of the original Step 6, focusing on delivering one pi
 *Pause Point: Basic 1-on-1 messaging between connections is now functional.*
 ---
 
-**Step 6.6: Basic Activity Feed (Model & Generation)**
+**Step 7: Feed (posts, comments, activity)**
+Many steps that gemini just implemented instead of giving the plan first, ill add slowly point by point whats going on
 
-*   **Goal:** Create a way to record significant user actions for the feed. Start with "added portfolio item".
-*   **Tasks:**
-    1.  **Create `Activity` Model:**
-        *   Define a new model `Activity` (in a `feed` app or maybe `users`).
-        *   Fields:
-            *   `user`: ForeignKey to `User` (who performed the action).
-            *   `activity_type`: CharField (e.g., 'new_portfolio_item').
-            *   `content`: TextField (e.g., "added a new portfolio item: '[Item Title]'"). Store descriptive text directly for simplicity in MVP.
-            *   `timestamp`: DateTimeField (auto_now_add=True).
-            *   (Optional: GenericForeignKey to link directly to the related object like `PortfolioItem`).
-    2.  **Create Migrations:** Run `makemigrations` and `migrate`.
-    3.  **Modify Portfolio Views:**
-        *   In the view where a `PortfolioItem` is successfully created (or maybe updated), add logic to also create an `Activity` record.
-        *   Construct the `content` string dynamically (e.g., `f"added a new portfolio item: '{portfolio_item.title}'"`).
+* Models: Post, Comment
 
-**Step 6.7: Display Basic Activity Feed**
+* Apps: We can create a new feed app for this, or potentially integrate parts into users or portfolio where relevant (though a dedicated feed app is likely cleaner). Let's plan for a feed app.
 
-*   **Goal:** Show the logged-in user a chronological feed of activities from their connections.
-*   **Tasks:**
-    1.  **Create `feed_view`:**
-        *   Get the list of user IDs the `request.user` is connected to (status='accepted').
-        *   Query `Activity` objects where the `user` is in that list of connected IDs.
-        *   Order the activities by `timestamp` (descending).
-        *   Pass the list of activities to the template.
-    2.  **Create `feed.html` Template:**
-        *   Loop through the activities and display the `user.username`, `content`, and `timestamp` for each.
-    3.  **Add URL:** Create a URL pattern for the feed (this could potentially become the main 'home' page after login).
-    4.  **Update `base.html`:** Add a navigation link to "Feed" or "Home".
+**Step 7.1: Feed, Post & Comment Models**
 
+Goal: Define the database structure for posts and comments.
+
+Tasks:
+
+* Create feed App:
+
+    * Run python manage.py startapp feed in your terminal.
+
+    * Add 'feed' to INSTALLED_APPS in settings.py.
+
+* Define Post Model (feed/models.py)
+* Define Comment Model (feed/models.py)
+* Create Migrations:
+
+    * Run python manage.py makemigrations feed
+
+    * Run python manage.py migrate
+
+**Step 7.2: Create Manual Post Functionality**
+
+Goal: Allow logged-in users to write and submit their own text posts.
+
+Tasks:
+
+* Create Post Form (feed/forms.py)
+* Create create_post View (feed/views.py)
+* Create create_post.html Template (templates/feed/create_post.html)
+* Add URL (feed/urls.py)
+* Include in Main URLs (moviepeople/urls.py)
+* Add Navigation Link: Add a "Create Post" link in base.html pointing to {% url 'feed:create_post' %}.
+
+**Step 7.3: Modify Portfolio View to Create Posts**
+Goal: Automatically create a Post of type portfolio_add when a user adds a new portfolio item.
+
+**Step 7.4: Create the Main Feed View & Template**
+Goal: Display a chronological list of posts (both user-generated and automatic) from the logged-in user and their connections.
+
+Tasks:
+
+* Create feed_view (feed/views.py)
+* Create feed.html Template (templates/feed/feed.html)
+* Add URL (feed/urls.py)
+* Update Navigation: Make sure there's a "Feed" link in base.html pointing to {% url 'feed:feed_view' %}. This could be your main home link after login.
+
+**Step 7.5:  Post Detail & Comment Functionality**
+Goal: Create a page to view a single post and its comments, and allow users to add new comments.
+
+Tasks:
+
+* Create Comment Form (feed/forms.py)
+* Create post_detail View (feed/views.py)
+* Create post_detail.html Template (templates/feed/post_detail.html)
+* Add URLs (feed/urls.py)
 
 #### 7. Basic UI
 - **What to Do**: Make it usable, not pretty.  

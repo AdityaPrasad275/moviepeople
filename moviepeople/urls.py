@@ -25,4 +25,5 @@ urlpatterns = [
     path("portfolio/", include("portfolio.urls")),
     path("connections/", include("connections.urls")),
     path("messages/", include("messaging.urls")),
+    path("feed/", include("feed.urls")),
 ]

@@ -62,9 +62,15 @@ for user in users:
 Error log:
 - when going to difffernt guy's profile, it was showing that user's name in the navbar instead of the logged in user's name. this was beacuse in base.html i was using `{{ user.username }}` and same in profile too. django  autopopoulates user keyword to whatever idk. so i changed in profile.html to profile_user which was being passed by profile_view instead of being autopopulated by django.
 
-## Step 6: Networking
+## Step 6: Networking (Connections and messaging)
 6.1 added connections to db
 6.2 added view to request connections
 6.3 added view to see pending requests and connections
 6.4 Added messaging system
 6.5 added view to send messages and see messages
+
+## Step 7: Feed (Posts, comments and activity)
+- added a post and comment model to db
+- added a view to create posts and feed view tro see posts from people you are connected to.
+- added a view to create comments and see comments on posts.
+

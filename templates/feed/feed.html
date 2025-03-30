@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}My Feed{% endblock %}
+
+{% block content %}
+<h2>My Feed</h2>
+<hr>
+<!-- 
+{# Optional: Include Post Creation Form directly here #}
+<div style="margin-bottom: 20px; padding: 15px; border: 1px solid #eee;">
+  <h4>Create a Post</h4>
+  <form method="post" action="{% url 'feed:feed_view' %}"> {# Submit to the feed view itself #}
+    {% csrf_token %}
+    {{ post_form.as_p }}
+    <button type="submit">Post</button>
+  </form>
+</div>
+<hr> -->
+
+{# Display Posts #}
+<h3>Recent Activity</h3>
+{% if posts %}
+{% for post in posts %}
+<div style="border: 1px solid #ccc; margin-bottom: 15px; padding: 10px;">
+  <p>
+    <strong><a href="{% url 'users:user_profile' username=post.user.username %}">{{ post.user.username }}</a></strong>
+    {% if post.post_type == 'portfolio_add' %}
+    <span style="color: #666;">(added a portfolio item)</span>
+    {% endif %}
+    <small style="color: #888; float: right;">{{ post.timestamp|date:"N j, Y, P" }}</small> {# Nicer date format #}
+  </p>
+  <p style="margin-top: 5px;">{{ post.content|linebreaksbr }}</p> {# Display content with line breaks #}
+
+  {# Link to view post details and comments (we'll create this view next) #}
+  <a href="{% url 'feed:post_detail' post_id=post.id %}">
+    View Details / Comments ({{ post.comments.count }}) {# Show comment count #}
+  </a>
+</div>
+{% endfor %}
+{% else %}
+<p>No posts yet from you or your connections.</p>
+{% endif %}
+{% endblock %}

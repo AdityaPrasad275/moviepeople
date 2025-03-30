@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import PortfolioItem
 from .forms import PortfolioItemForm
+from feed.models import Post
 
 
 @login_required
@@ -18,6 +19,20 @@ def create_portfolio_item(request):
             item = form.save(commit=False)
             item.user = request.user
             item.save()
+            
+            try:
+                Post.objects.create(
+                    user=request.user,
+                    post_type='portfolio_add',
+                    content=f"Added a new portfolio item: '{item.title}'"
+                    # If using GenericForeignKey later, you'd link it here:
+                    # content_type=ContentType.objects.get_for_model(portfolio_item),
+                    # object_id=portfolio_item.pk,
+                )
+            except Exception as e:
+                # Optional: Log error if post creation fails, but don't stop the user flow
+                print(f"Error creating feed post for new portfolio item: {e}")
+                
             return redirect("portfolio:portfolio_list")
     else:
         form = PortfolioItemForm()

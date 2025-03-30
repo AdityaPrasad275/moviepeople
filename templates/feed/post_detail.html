@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Post Details{% endblock %}
+
+{% block content %}
+<h2>Post Details</h2>
+<hr>
+
+{# Display the main post #}
+<div style="border: 1px solid #ccc; margin-bottom: 15px; padding: 10px;">
+  <p>
+    <strong><a href="{% url 'users:user_profile' username=post.user.username %}">{{ post.user.username }}</a></strong>
+    {% if post.post_type == 'portfolio_add' %}
+    <span style="color: #666;">(added a portfolio item)</span>
+    {% endif %}
+    <small style="color: #888; float: right;">{{ post.timestamp|date:"N j, Y, P" }}</small>
+  </p>
+  <p style="margin-top: 5px;">{{ post.content|linebreaksbr }}</p>
+</div>
+
+{# Add Comment Form #}
+<h3>Add Comment</h3>
+<form method="post"> {# POSTs to the current URL (post_detail view) #}
+  {% csrf_token %}
+  {{ comment_form.as_p }}
+  <button type="submit">Submit Comment</button>
+</form>
+<hr>
+
+{# Display Comments #}
+<h3>Comments ({{ comments.count }})</h3>
+{% if comments %}
+{% for comment in comments %}
+<div style="border-bottom: 1px solid #eee; margin-bottom: 10px; padding-bottom: 10px;">
+  <p>
+    <strong><a
+        href="{% url 'users:user_profile' username=comment.user.username %}">{{ comment.user.username }}</a></strong>
+    <small style="color: #888; float: right;">{{ comment.timestamp|date:"N j, Y, P" }}</small>
+  </p>
+  <p>{{ comment.content|linebreaksbr }}</p>
+</div>
+{% endfor %}
+{% else %}
+<p>No comments yet.</p>
+{% endif %}
+
+<p><a href="{% url 'feed:feed_view' %}">Back to Feed</a></p>
+
+{% endblock %}

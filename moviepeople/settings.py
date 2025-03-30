@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "portfolio",
     "connections",
     "messaging",
+    "feed",
 ]
 
 MIDDLEWARE = [

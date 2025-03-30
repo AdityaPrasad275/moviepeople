@@ -98,7 +98,7 @@
   {% endif %}
 
   {% if profile_user == user %}
-  <a href="#">Manage Portfolio</a> {# Link to your portfolio management page #}
+  <a href="{% url 'portfolio:portfolio_list' %}">Manage Portfolio</a>
   {% endif %}
 </div>
 

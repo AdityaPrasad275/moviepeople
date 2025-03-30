@@ -18,6 +18,8 @@
           <li><a href="{% url 'users:search_users' %}">Find People</a></li>
           <li><a href="{% url 'connections:list_connections' %}">My Connections</a></li>
           <li><a href="{% url 'connections:list_pending_requests' %}">Pending Requests</a></li>
+          <li><a href="{% url 'feed:create_post' %}">Create posts</a></li>
+          <li><a href="{% url 'feed:feed_view' %}">My Feed</a></li>
           {# You might want a badge here later showing count of pending requests #}
           {# --- End of added/modified lines --- #}
           <li><a href="{% url 'users:logout' %}">Logout</a></li>
