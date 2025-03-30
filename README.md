@@ -65,4 +65,6 @@ Error log:
 ## Step 6: Networking
 6.1 added connections to db
 6.2 added view to request connections
-6.3 added view to see pening requests and connections
+6.3 added view to see pending requests and connections
+6.4 Added messaging system
+6.5 added view to send messages and see messages

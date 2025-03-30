@@ -24,4 +24,5 @@ urlpatterns = [
     path("", views.home, name="home"),
     path("portfolio/", include("portfolio.urls")),
     path("connections/", include("connections.urls")),
+    path("messages/", include("messaging.urls")),
 ]

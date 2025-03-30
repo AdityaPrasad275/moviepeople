@@ -1,0 +1,51 @@
+<!-- messaging/templates/messaging/conversation.html -->
+{% extends 'base.html' %} <!-- Assuming you have a base template -->
+
+{% block title %}Conversation with {{ other_user.username }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Conversation with {{ other_user.username }}</h2>
+  <hr>
+
+  <!-- Message Display Area -->
+  <div id="message-list"
+    style="max-height: 400px; overflow-y: auto; margin-bottom: 20px; border: 1px solid #ccc; padding: 10px;">
+    {% if messages %}
+    {% for message in messages %}
+    <div class="mb-2 {% if message.sender == request.user %}text-end{% else %}text-start{% endif %}">
+      <small class="text-muted">
+        <strong>{{ message.sender.username }}</strong> at {{ message.timestamp|date:"Y-m-d H:i" }}
+      </small><br>
+      <p
+        style="display: inline-block; padding: 5px 10px; border-radius: 10px; background-color: {% if message.sender == request.user %}#d1ecf1{% else %}#e2e3e5{% endif %}; max-width: 80%;">
+        {{ message.content|linebreaksbr }} <!-- Use linebreaksbr to respect newlines -->
+      </p>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p>No messages yet. Start the conversation!</p>
+    {% endif %}
+  </div>
+
+  <!-- Message Input Form -->
+  <form method="post" action="{% url 'messaging:send_message' %}">
+    {% csrf_token %} <!-- IMPORTANT security token -->
+    <input type="hidden" name="recipient_id" value="{{ other_user.id }}">
+    <div class="mb-3">
+      <textarea class="form-control" name="content" rows="3" placeholder="Type your message..." required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Send Message</button>
+  </form>
+
+</div>
+
+<!-- Optional: Scroll to bottom (requires a bit of JavaScript) -->
+<script>
+  const messageList = document.getElementById('message-list');
+  if (messageList) {
+    messageList.scrollTop = messageList.scrollHeight;
+  }
+</script>
+
+{% endblock %}
